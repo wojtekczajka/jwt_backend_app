@@ -99,8 +99,8 @@ def get_user_roles(db: Session, user_id: int):
     return db.query(models.UserRole).join(models.Role).filter(models.UserRole.user_id == user_id)
 
 def get_inactive_users(db: Session, skip: int = 0, limit: int = 100):
-    #yesterday = datetime.utcnow() - timedelta(days=1)
-    one_minute_ago = datetime.utcnow() - timedelta(minutes=1)
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    #one_minute_ago = datetime.utcnow() - timedelta(minutes=1)
     return db.query(models.User).filter(models.User.is_active == False, models.User.created_at <= one_minute_ago).offset(skip).limit(limit).all()
 
 def delete_inactive_users(db: Session):
