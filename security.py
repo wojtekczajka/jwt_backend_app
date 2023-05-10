@@ -13,7 +13,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # openssl rand -hex 32
 SECRET_KEY = "d8aa3f482335bd14154af6350197d676be3e91f8f9c79bf29d82e26f2aa2438d"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,

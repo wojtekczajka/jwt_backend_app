@@ -30,7 +30,7 @@ background_tasks = BackgroundTasks()
 def delete_inactive_users_task(db: Session):
     while True:
         crud.delete_inactive_users(db)
-        time.sleep(5)  # Wait for 5 minutes before checking again
+        time.sleep(10 * 60)  # Wait for 10 minutes before checking again
 
 def start_inactive_users_deletion(db: Session):
     background_tasks.add_task(delete_inactive_users_task, db=db)
