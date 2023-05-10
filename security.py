@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import status, HTTPException, Depends, Header
-from typing import Annotated
+from typing import Annotated, Union
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt, ExpiredSignatureError
@@ -48,7 +48,7 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -74,7 +74,7 @@ def verify_user_required_role(db: Session, user: schemas.User, role: str):
 
 async def validate_token(
     db: Annotated[Session, Depends(database.get_db)],
-    x_access_token: Annotated[str | None, Header()]
+    x_access_token: Annotated[Union[str, None], Header()]
 ):
     verify_token_in_http_header(x_access_token)
     try:

@@ -17,10 +17,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://main.dmke1hvp7g7q1.amplifyapp.com/"],
+    allow_origins=["https://main.d3f9gvqybmfju1.amplifyapp.com",
+                   "http://main.d3f9gvqybmfju1.amplifyapp.com",
+                   "http://127.0.0.1:8000/"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["x-access-token"],
 )
 
 background_tasks = BackgroundTasks()
