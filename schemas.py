@@ -83,3 +83,7 @@ class TokenData(BaseModel):
 class UsersResponse(BaseModel):
     data: List[User]
     count: int
+
+
+class PublicResources(BaseModel):
+    public_resources: str

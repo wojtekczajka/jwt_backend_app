@@ -42,7 +42,7 @@ def startup_event():
     start_inactive_users_deletion(db)
 
 
-@app.post("/auth/signup", response_model=schemas.User)
+@app.post("/auth/signup/", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -57,7 +57,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_d
     return db_user
 
 
-@app.post("/auth/signin")
+@app.post("/auth/signin/")
 def login_user(form_data: schemas.UserLogin, db: Session = Depends(database.get_db)):
     user = security.authenticate_user(db, form_data.name, form_data.password)
     if not user:
@@ -90,12 +90,12 @@ def read_user_data(user: Annotated[schemas.User, Depends(security.validate_token
     return crud.get_roles(db, skip=skip, limit=limit)
 
 
-@app.get("/resource/public/")
+@app.get("/resource/public/", response_model=schemas.PublicResources)
 def get_public_resources():
-    return {"public resources": "empty :("}
+    return schemas.PublicResources(public_resources="empty :(")
 
 
-@app.get("/user", response_model=schemas.User)
+@app.get("/user/", response_model=schemas.User)
 def read_user_info(user: Annotated[schemas.User, Depends(security.validate_token)],
                    db: Session = Depends(database.get_db)):
     return user
