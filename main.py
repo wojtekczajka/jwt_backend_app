@@ -1,3 +1,6 @@
+import pymysql
+pymysql.install_as_MySQLdb()
+
 from datetime import timedelta
 import time
 
@@ -8,7 +11,11 @@ from sqlalchemy.orm import Session
 
 from typing import Annotated
 
-import crud, models, schemas, security, database
+import crud
+import models
+import schemas
+import security
+import database
 
 from mangum import Mangum
 
@@ -16,7 +23,6 @@ from mangum import Mangum
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
-handler = Mangum(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,10 +36,12 @@ app.add_middleware(
 
 background_tasks = BackgroundTasks()
 
+
 def delete_inactive_users_task(db: Session):
     while True:
         crud.delete_inactive_users(db)
         time.sleep(10 * 60)  # Wait for 10 minutes before checking again
+
 
 def start_inactive_users_deletion(db: Session):
     background_tasks.add_task(delete_inactive_users_task, db=db)
@@ -105,10 +113,10 @@ def read_user_info(user: Annotated[schemas.User, Depends(security.validate_token
 
 
 @app.delete("/user/")
-def delete_user(#user: Annotated[schemas.User, Depends(security.validate_token)],
-                user_id: schemas.UserId,
-                db: Session = Depends(database.get_db)):
-    #security.verify_user_required_role(db, user, "admin")
+def delete_user(  # user: Annotated[schemas.User, Depends(security.validate_token)],
+        user_id: schemas.UserId,
+        db: Session = Depends(database.get_db)):
+    # security.verify_user_required_role(db, user, "admin")
     db_user = crud.get_user(db, user_id=user_id.user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -118,21 +126,22 @@ def delete_user(#user: Annotated[schemas.User, Depends(security.validate_token)]
 
 
 @app.put("/activate_user/", response_model=schemas.User)
-async def activate_user(#user: Annotated[schemas.User, Depends(security.validate_token)],
-                        user_id: schemas.UserId,
-                        db: Session = Depends(database.get_db)):
-    #security.verify_user_required_role(db, user, "admin")
-    db_user = crud.set_user_is_active(db=db, user_id=user_id.user_id, is_active=True)
+async def activate_user(  # user: Annotated[schemas.User, Depends(security.validate_token)],
+        user_id: schemas.UserId,
+        db: Session = Depends(database.get_db)):
+    # security.verify_user_required_role(db, user, "admin")
+    db_user = crud.set_user_is_active(
+        db=db, user_id=user_id.user_id, is_active=True)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
 @app.post("/roles/", response_model=schemas.Role)
-def create_role(#user: Annotated[schemas.User, Depends(security.validate_token)],
-                role: schemas.RollCreate, 
-                db: Session = Depends(database.get_db),):
-    #security.verify_user_required_role(db, user, "admin")
+def create_role(  # user: Annotated[schemas.User, Depends(security.validate_token)],
+        role: schemas.RollCreate,
+        db: Session = Depends(database.get_db),):
+    # security.verify_user_required_role(db, user, "admin")
     db_role = crud.get_role_by_name(db, name=role.name)
     if db_role:
         raise HTTPException(status_code=400, detail="Role already created")
@@ -140,9 +149,11 @@ def create_role(#user: Annotated[schemas.User, Depends(security.validate_token)]
 
 
 @app.post("/user_roles/")
-def create_user_role(#user: Annotated[schemas.User, Depends(security.validate_token)],
-                     user_role: schemas.UserRoleBase,
-                     db: Session = Depends(database.get_db)):
-    #security.verify_user_required_role(db, user, "admin")
+def create_user_role(  # user: Annotated[schemas.User, Depends(security.validate_token)],
+        user_role: schemas.UserRoleBase,
+        db: Session = Depends(database.get_db)):
+    # security.verify_user_required_role(db, user, "admin")
     return crud.create_user_role(db=db, user_role=user_role)
 
+
+handler = Mangum(app)
