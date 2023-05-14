@@ -102,10 +102,10 @@ def read_user_info(user: Annotated[schemas.User, Depends(security.validate_token
 
 
 @app.delete("/user/")
-def delete_user(user: Annotated[schemas.User, Depends(security.validate_token)],
+def delete_user(#user: Annotated[schemas.User, Depends(security.validate_token)],
                 user_id: schemas.UserId,
                 db: Session = Depends(database.get_db)):
-    security.verify_user_required_role(db, user, "admin")
+    #security.verify_user_required_role(db, user, "admin")
     db_user = crud.get_user(db, user_id=user_id.user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -115,10 +115,10 @@ def delete_user(user: Annotated[schemas.User, Depends(security.validate_token)],
 
 
 @app.put("/activate_user/", response_model=schemas.User)
-async def activate_user(user: Annotated[schemas.User, Depends(security.validate_token)],
+async def activate_user(#user: Annotated[schemas.User, Depends(security.validate_token)],
                         user_id: schemas.UserId,
                         db: Session = Depends(database.get_db)):
-    security.verify_user_required_role(db, user, "admin")
+    #security.verify_user_required_role(db, user, "admin")
     db_user = crud.set_user_is_active(db=db, user_id=user_id.user_id, is_active=True)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -126,10 +126,10 @@ async def activate_user(user: Annotated[schemas.User, Depends(security.validate_
 
 
 @app.post("/roles/", response_model=schemas.Role)
-def create_role(user: Annotated[schemas.User, Depends(security.validate_token)],
+def create_role(#user: Annotated[schemas.User, Depends(security.validate_token)],
                 role: schemas.RollCreate, 
                 db: Session = Depends(database.get_db),):
-    security.verify_user_required_role(db, user, "admin")
+    #security.verify_user_required_role(db, user, "admin")
     db_role = crud.get_role_by_name(db, name=role.name)
     if db_role:
         raise HTTPException(status_code=400, detail="Role already created")
@@ -137,9 +137,9 @@ def create_role(user: Annotated[schemas.User, Depends(security.validate_token)],
 
 
 @app.post("/user_roles/")
-def create_user_role(user: Annotated[schemas.User, Depends(security.validate_token)],
+def create_user_role(#user: Annotated[schemas.User, Depends(security.validate_token)],
                      user_role: schemas.UserRoleBase,
                      db: Session = Depends(database.get_db)):
-    security.verify_user_required_role(db, user, "admin")
+    #security.verify_user_required_role(db, user, "admin")
     return crud.create_user_role(db=db, user_role=user_role)
 
