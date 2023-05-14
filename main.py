@@ -10,10 +10,13 @@ from typing import Annotated
 
 import crud, models, schemas, security, database
 
+from mangum import Mangum
+
 
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+handler = Mangum(app)
 
 app.add_middleware(
     CORSMiddleware,
