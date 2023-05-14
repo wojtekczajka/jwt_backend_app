@@ -9,9 +9,9 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    name = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    email = Column(String(255), unique=True, index=True)
+    name = Column(String(255), unique=True, index=True)
+    hashed_password = Column(String(255))
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -22,8 +22,8 @@ class Role(Base):
     __tablename__ = "roles"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, index=True)
+    name = Column(String(255), index=True)
+    description = Column(String(255), index=True)
 
     user_roles = relationship("UserRole", back_populates="role")
 
