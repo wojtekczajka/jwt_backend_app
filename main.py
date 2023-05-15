@@ -1,9 +1,5 @@
-import pymysql
-pymysql.install_as_MySQLdb()
-
 from datetime import timedelta
 import time
-
 from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 
