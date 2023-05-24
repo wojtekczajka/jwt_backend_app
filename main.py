@@ -24,7 +24,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://main.d3f9gvqybmfju1.amplifyapp.com",
                    "http://main.d3f9gvqybmfju1.amplifyapp.com",
-                   "http://127.0.0.1:8000/",
+                   "http://127.0.0.1:8080/",
                    "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -91,7 +91,8 @@ def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: S
     access_token = security.create_access_token(
         data={"sub": user.name}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "access_token_exp": access_token_expires}
+    print(user.name)
+    return {"access_token": access_token, "token_type": "bearer", "access_token_exp": access_token_expires}
 
 
 @app.get("/resource/admin/", response_model=list[schemas.UserAll])
