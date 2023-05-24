@@ -4,6 +4,7 @@ from typing import Annotated, Union
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt, ExpiredSignatureError
+from fastapi.security import OAuth2PasswordBearer
 
 import crud, schemas, database
 
@@ -14,6 +15,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "d8aa3f482335bd14154af6350197d676be3e91f8f9c79bf29d82e26f2aa2438d"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin/")
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -59,11 +62,6 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
-def verify_token_in_http_header(token: str):
-    if not token:
-        raise credentials_exception
-
-
 def verify_user_required_role(db: Session, user: schemas.User, role: str):
     if not role:
         raise credentials_exception
@@ -74,11 +72,10 @@ def verify_user_required_role(db: Session, user: schemas.User, role: str):
 
 async def validate_token(
     db: Annotated[Session, Depends(database.get_db)],
-    x_access_token: Annotated[Union[str, None], Header()]
+    token: Annotated[str, Depends(oauth2_scheme)],
 ):
-    verify_token_in_http_header(x_access_token)
     try:
-        payload = jwt.decode(x_access_token, SECRET_KEY,
+        payload = jwt.decode(token, SECRET_KEY,
                              algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:

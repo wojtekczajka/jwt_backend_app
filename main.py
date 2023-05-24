@@ -1,7 +1,9 @@
 from datetime import timedelta
 import time
-from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks
+from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from sqlalchemy.orm import Session
 
@@ -28,7 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["x-access-token"],
 )
-
+app.add_middleware(SessionMiddleware, secret_key="secret-string")
 background_tasks = BackgroundTasks()
 
 
@@ -48,6 +50,19 @@ def startup_event():
     start_inactive_users_deletion(db)
 
 
+@app.get("/auth/login")
+async def login(request: Request):
+    redirect_uri = request.url_for('auth')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/auth")
+async def auth(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    user = await oauth.google.parse_id_token(request, token)
+    # Perform necessary actions with the user data
+    return {"user": user}
+
+
 @app.post("/auth/signup/", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -64,8 +79,8 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_d
 
 
 @app.post("/auth/signin/")
-def login_user(form_data: schemas.UserLogin, db: Session = Depends(database.get_db)):
-    user = security.authenticate_user(db, form_data.name, form_data.password)
+def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(database.get_db)):
+    user = security.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
