@@ -75,20 +75,26 @@ async def validate_token(
     token: Annotated[str, Depends(oauth2_scheme)],
 ):
     try:
+        print("elo0")
         payload = jwt.decode(token, SECRET_KEY,
                              algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            print("elo1")
             raise credentials_exception
         token_data = schemas.TokenData(username=username)
     except ExpiredSignatureError:
+        print("elo2")
         raise credentials_exception_token_expired
     except JWTError:
+        print("elo3")
         raise credentials_exception
     user = crud.get_user_by_name(db, token_data.username)
     if user is None:
+        print("elo4")
         raise credentials_exception
     if user.is_active == False:
+        print("elo5")
         raise HTTPException(
             status_code=403, detail="User is not activated")
     return user
