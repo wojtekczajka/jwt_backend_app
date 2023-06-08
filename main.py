@@ -28,7 +28,7 @@ app.add_middleware(
                    "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["x-access-token"],
+    allow_headers=["Authorization"],
 )
 app.add_middleware(SessionMiddleware, secret_key="secret-string")
 background_tasks = BackgroundTasks()
