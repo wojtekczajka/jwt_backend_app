@@ -1,9 +1,8 @@
 from datetime import timedelta
 import time
-from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 
 from sqlalchemy.orm import Session
 
@@ -20,17 +19,16 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
 
+ALLOWED_HOSTS = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://main.d3f9gvqybmfju1.amplifyapp.com",
-                   "http://main.d3f9gvqybmfju1.amplifyapp.com",
-                   "http://127.0.0.1:8080/",
-                   "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws"],
+    allow_origins=ALLOWED_HOSTS,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Authorization"],
+    allow_headers=["*"],
 )
-app.add_middleware(SessionMiddleware, secret_key="secret-string")
+
 background_tasks = BackgroundTasks()
 
 
@@ -50,17 +48,17 @@ def startup_event():
     start_inactive_users_deletion(db)
 
 
-@app.get("/auth/login")
-async def login(request: Request):
-    redirect_uri = request.url_for('auth')
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+# @app.get("/auth/login")
+# async def login(request: Request):
+#     redirect_uri = request.url_for('auth')
+#     return await oauth.google.authorize_redirect(request, redirect_uri)
 
-@app.get("/auth")
-async def auth(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    user = await oauth.google.parse_id_token(request, token)
-    # Perform necessary actions with the user data
-    return {"user": user}
+# @app.get("/auth")
+# async def auth(request: Request):
+#     token = await oauth.google.authorize_access_token(request)
+#     user = await oauth.google.parse_id_token(request, token)
+#     # Perform necessary actions with the user data
+#     return {"user": user}
 
 
 @app.post("/auth/signup/", response_model=schemas.User)
