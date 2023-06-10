@@ -1,8 +1,12 @@
 from datetime import timedelta
 import time
-from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks
+from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from starlette.config import Config
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from starlette.responses import RedirectResponse
 
 from sqlalchemy.orm import Session
 
@@ -18,6 +22,19 @@ import database
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="!secret")
+
+config = Config('.env')
+oauth = OAuth(config)
+
+CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
+oauth.register(
+    name='google',
+    server_metadata_url=str(CONF_URL),
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -90,6 +107,25 @@ def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: S
         data={"sub": user.name}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "access_token_exp": access_token_expires}
+
+
+@app.get("/auth/google_signin/")
+async def login_user_via_google(request: Request):
+    redirect_uri = str(request.url_for('/auth/google_auth/'))
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@app.get('/auth/google_auth/')
+async def auth(request: Request):
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError as error:
+        return security.credentials_exception
+    user = token.get('userinfo')
+    if user:
+        request.session['user'] = dict(user)
+        print(user)
+    return RedirectResponse(url='/')
 
 
 @app.get("/resource/admin/", response_model=list[schemas.UserAll])
