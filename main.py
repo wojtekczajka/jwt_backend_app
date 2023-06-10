@@ -1,6 +1,5 @@
-import json
 from datetime import timedelta
-import time
+import time, json
 from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.config import Config
@@ -37,15 +36,13 @@ oauth.register(
     }
 )
 
-# ALLOWED_HOSTS = ["https://main.d3f9gvqybmfju1.amplifyapp.com",
-#                  "http://main.d3f9gvqybmfju1.amplifyapp.com",
-#                  "http://127.0.0.1:8000/",
-#                  "http://127.0.0.1:8080/",
-#                  "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws",
-#                  "https://accounts.google.com"
-#                  ]
-
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["https://main.d3f9gvqybmfju1.amplifyapp.com",
+                 "http://main.d3f9gvqybmfju1.amplifyapp.com",
+                 "http://127.0.0.1:8000/",
+                 "http://127.0.0.1:8080/",
+                 "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws",
+                 "https://accounts.google.com"
+                 ]
 
 app.add_middleware(
     CORSMiddleware,
@@ -104,7 +101,8 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_d
 
 @app.post("/auth/signin/")
 def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(database.get_db)):
-    user = security.authenticate_user(db, form_data.username, form_data.password)
+    user = security.authenticate_user(
+        db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,6 +128,7 @@ async def homepage(request: Request):
         return HTMLResponse(html)
     return HTMLResponse('<a href="/auth/google_signin/">login</a>')
 
+
 @app.get("/auth/google_signin/")
 async def login_user_via_google(request: Request):
     redirect_uri = str(request.url_for('auth'))
@@ -141,11 +140,17 @@ async def auth(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as error:
-        return security.credentials_exception
+        return error
     user = token.get('userinfo')
     if user:
         request.session['user'] = dict(user)
         print(user)
+    return RedirectResponse(url='/')
+
+
+@app.get('/logout/')
+async def logout(request: Request):
+    request.session.pop('user', None)
     return RedirectResponse(url='/')
 
 
@@ -179,8 +184,8 @@ def read_user_info(user: Annotated[schemas.User, Depends(security.validate_token
 
 @app.delete("/user/")
 def delete_user(user: Annotated[schemas.User, Depends(security.validate_token)],
-        user_id: schemas.UserId,
-        db: Session = Depends(database.get_db)):
+                user_id: schemas.UserId,
+                db: Session = Depends(database.get_db)):
     security.verify_user_required_role(db, user, "admin")
     db_user = crud.get_user(db, user_id=user_id.user_id)
     if db_user is None:
@@ -192,8 +197,8 @@ def delete_user(user: Annotated[schemas.User, Depends(security.validate_token)],
 
 @app.put("/activate_user/", response_model=schemas.User)
 async def activate_user(user: Annotated[schemas.User, Depends(security.validate_token)],
-        user_id: schemas.UserId,
-        db: Session = Depends(database.get_db)):
+                        user_id: schemas.UserId,
+                        db: Session = Depends(database.get_db)):
     security.verify_user_required_role(db, user, "admin")
     db_user = crud.set_user_is_active(
         db=db, user_id=user_id.user_id, is_active=True)
@@ -204,8 +209,8 @@ async def activate_user(user: Annotated[schemas.User, Depends(security.validate_
 
 @app.post("/roles/", response_model=schemas.Role)
 def create_role(user: Annotated[schemas.User, Depends(security.validate_token)],
-        role: schemas.RollCreate,
-        db: Session = Depends(database.get_db),):
+                role: schemas.RollCreate,
+                db: Session = Depends(database.get_db),):
     security.verify_user_required_role(db, user, "admin")
     db_role = crud.get_role_by_name(db, name=role.name)
     if db_role:
@@ -215,7 +220,7 @@ def create_role(user: Annotated[schemas.User, Depends(security.validate_token)],
 
 @app.post("/user_roles/")
 def create_user_role(user: Annotated[schemas.User, Depends(security.validate_token)],
-        user_role: schemas.UserRoleBase,
-        db: Session = Depends(database.get_db)):
+                     user_role: schemas.UserRoleBase,
+                     db: Session = Depends(database.get_db)):
     security.verify_user_required_role(db, user, "admin")
     return crud.create_user_role(db=db, user_role=user_role)
