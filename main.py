@@ -6,7 +6,7 @@ from starlette.config import Config
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from authlib.integrations.starlette_client import OAuth, OAuthError
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, HTMLResponse
 
 from sqlalchemy.orm import Session
 
@@ -114,9 +114,21 @@ def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: S
     return {"access_token": access_token, "token_type": "bearer", "access_token_exp": access_token_expires}
 
 
+@app.get('/')
+async def homepage(request: Request):
+    user = request.session.get('user')
+    if user:
+        data = json.dumps(user)
+        html = (
+            f'<pre>{data}</pre>'
+            '<a href="/logout">logout</a>'
+        )
+        return HTMLResponse(html)
+    return HTMLResponse('<a href="/auth/google_signin/">login</a>')
+
 @app.get("/auth/google_signin/")
 async def login_user_via_google(request: Request):
-    redirect_uri = str(request.url_for('/auth/google_auth/'))
+    redirect_uri = str(request.url_for('auth'))
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
