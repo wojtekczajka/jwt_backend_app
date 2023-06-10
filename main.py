@@ -40,7 +40,8 @@ ALLOWED_HOSTS = ["https://main.d3f9gvqybmfju1.amplifyapp.com",
                  "http://main.d3f9gvqybmfju1.amplifyapp.com",
                  "http://127.0.0.1:8000/",
                  "http://127.0.0.1:8080/",
-                 "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws"
+                 "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws",
+                 "https://accounts.google.com"
                  ]
 
 app.add_middleware(
