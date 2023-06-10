@@ -130,11 +130,14 @@ async def homepage(request: Request):
     return HTMLResponse('<a href="/auth/google_signin/">login</a>')
 
 
+# @app.get("/auth/google_signin/")
+# async def login_user_via_google(request: Request):
+#     redirect_uri = str(request.url_for('auth'))
+#     return await oauth.google.authorize_redirect(request, redirect_uri)
 @app.get("/auth/google_signin/")
-async def login_user_via_google(request: Request):
-    redirect_uri = str(request.url_for('auth'))
-    return await oauth.google.authorize_redirect(request, redirect_uri)
-
+async def login_user_via_google():
+    redirect_uri = "https://fastapi-server-ezey.onrender.com/auth/google_auth/"
+    return RedirectResponse(url=oauth.google.authorize_redirect_url(redirect_uri))
 
 @app.get('/auth/google_auth/')
 async def auth(request: Request):
