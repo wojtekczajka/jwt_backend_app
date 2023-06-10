@@ -1,5 +1,6 @@
 from datetime import timedelta
-import time, json
+import time
+import json
 from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.config import Config
@@ -41,7 +42,8 @@ ALLOWED_HOSTS = ["https://main.d3f9gvqybmfju1.amplifyapp.com",
                  "http://127.0.0.1:8000/",
                  "http://127.0.0.1:8080/",
                  "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws",
-                 "https://accounts.google.com"
+                 "https://accounts.google.com",
+                 "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=644028734611-p2ho1l9gvg5ptpg1qi76p66o4q3nvcpt.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Ffastapi-server-ezey.onrender.com%2Fauth%2Fgoogle_auth%2F&scope=openid+email+profile&state=MXgyHW9ZxhGpQVYmd87NB19GO9fNuU&nonce=wT6o95lqik3VOducTaZj"
                  ]
 
 app.add_middleware(
@@ -140,6 +142,7 @@ async def auth(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as error:
+        print(error)
         return error
     user = token.get('userinfo')
     if user:
