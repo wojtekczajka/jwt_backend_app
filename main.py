@@ -89,7 +89,6 @@ def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: S
     access_token = security.create_access_token(
         data={"sub": user.name}, expires_delta=access_token_expires
     )
-    print(user.name)
     return {"access_token": access_token, "token_type": "bearer", "access_token_exp": access_token_expires}
 
 
