@@ -43,7 +43,6 @@ ALLOWED_HOSTS = ["https://main.d3f9gvqybmfju1.amplifyapp.com",
                  "http://127.0.0.1:8080/",
                  "https://ti4r36gvwlegcokae4ofeivnva0hwiqn.lambda-url.eu-north-1.on.aws",
                  "https://accounts.google.com",
-                 "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=644028734611-p2ho1l9gvg5ptpg1qi76p66o4q3nvcpt.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Ffastapi-server-ezey.onrender.com%2Fauth%2Fgoogle_auth%2F&scope=openid+email+profile&state=MXgyHW9ZxhGpQVYmd87NB19GO9fNuU&nonce=wT6o95lqik3VOducTaZj"
                  ]
 
 app.add_middleware(
