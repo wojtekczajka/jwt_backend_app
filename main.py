@@ -1,6 +1,5 @@
 from datetime import timedelta
-import time
-import json
+import time, json, secrets
 from fastapi import Depends, FastAPI, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.config import Config
@@ -131,10 +130,26 @@ async def auth(request: Request, db: Session = Depends(database.get_db)):
     except OAuthError as error:
         print(error)
         return error
+    
     user = token.get('userinfo')
+
+    db_user = crud.get_user_by_email(db, email=user['email'])
+
+    if not db_user:
+        google_user = schemas.UserCreate(name=user['name'], email=user['email'], password=secrets.token_hex(16))
+        db_user = crud.create_user(db=db, user=google_user)
+        user_role = schemas.UserRoleCreate(user_id=db_user.id, role_id=2)
+        crud.create_user_role(db=db, user_role=user_role)
+
+    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = security.create_access_token(data={"sub": db_user.name}, expires_delta=access_token_expires)
+
+    redirect_url = "https://main.d3f9gvqybmfju1.amplifyapp.com/login?access_token=" + access_token
+
     if user:
         request.session['user'] = dict(user)
-    return RedirectResponse(url='https://main.d3f9gvqybmfju1.amplifyapp.com/login')
+        
+    return RedirectResponse(url=redirect_url)
 
 
 @app.get('/logout/')
