@@ -72,19 +72,6 @@ def startup_event():
     start_inactive_users_deletion(db)
 
 
-# @app.get("/auth/login")
-# async def login(request: Request):
-#     redirect_uri = request.url_for('auth')
-#     return await oauth.google.authorize_redirect(request, redirect_uri)
-
-# @app.get("/auth")
-# async def auth(request: Request):
-#     token = await oauth.google.authorize_access_token(request)
-#     user = await oauth.google.parse_id_token(request, token)
-#     # Perform necessary actions with the user data
-#     return {"user": user}
-
-
 @app.post("/auth/signup/", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -130,18 +117,15 @@ async def homepage(request: Request):
     return HTMLResponse('<a href="/auth/google_signin/">login</a>')
 
 
-# @app.get("/auth/google_signin/")
-# async def login_user_via_google(request: Request):
-#     redirect_uri = str(request.url_for('auth'))
-#     return await oauth.google.authorize_redirect(request, redirect_uri)
 @app.get("/auth/google_signin/")
 async def login_user_via_google(request: Request):
     # redirect_uri = "http://127.0.0.1:8000/auth/google_auth/"
     redirect_uri = "https://fastapi-server-ezey.onrender.com/auth/google_auth/"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
+
 @app.get('/auth/google_auth/')
-async def auth(request: Request):
+async def auth(request: Request, db: Session = Depends(database.get_db)):
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as error:
@@ -150,8 +134,7 @@ async def auth(request: Request):
     user = token.get('userinfo')
     if user:
         request.session['user'] = dict(user)
-        print(user)
-    return RedirectResponse(url='/')
+    return RedirectResponse(url='https://main.d3f9gvqybmfju1.amplifyapp.com/login')
 
 
 @app.get('/logout/')
